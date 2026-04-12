@@ -1,0 +1,46 @@
+﻿@model IEnumerable<Xprint.Data.UserItem>
+
+@{
+    ViewData["Title"] = "Quản lý Người Dùng";
+}
+
+<div class="container mt-4">
+    <h2>Quản lý Tài Khoản Hệ Thống</h2>
+    <a href="/User/Create" class="btn btn-primary mb-3">Tạo Tài Khoản Mới</a>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Tài Khoản</th>
+                <th>Họ Tên</th>
+                <th>Khách Hàng (Tenant ID)</th>
+                <th>Phân Quyền</th>
+                <th>Trạng Thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong>@item.Username</strong></td>
+                    <td>@item.FullName</td>
+                    <td><span class="badge bg-info text-dark">@item.TenantId</span></td>
+                    <td>
+                        @if (item.Role == "SuperAdmin")
+                        {
+                            <span class="badge bg-danger">B24 Admin</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-secondary">Khách Hàng</span>
+                        }
+                    </td>
+                    <td>
+                        @(item.IsActive ? "Đang hoạt động" : "Bị khóa")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

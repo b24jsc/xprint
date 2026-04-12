@@ -1,0 +1,46 @@
+﻿## [PHẦN CHÍNH] Các file tạm của Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+out/
+*.user
+*.userosscache
+*.sln.docstates
+
+## [CẤU HÌNH] Các file cài đặt cá nhân (Local Secrets)
+# Giữ lại appsettings.json, nhưng nên ignore các file chứa mật khẩu thật
+appsettings.Development.json
+# appsettings.Production.json
+
+## [HẠ TẦNG] Các file DB SQLite mẫu (Vì anh đã dùng Postgres)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+Data/nwind.db
+Data/reportsData.db
+Data/documentViewerStorage.db
+Data/nwind.json
+
+## [LẬP TRÌNH] NuGet Packages
+*.nupkg
+# Thư mục chứa gói nếu anh dùng global packages thì không sao, 
+# nhưng nếu có thư mục 'packages' cục bộ thì cần ignore.
+**/packages/*
+!**/packages/build/
+
+## [DEVEXPRESS] Các file tạm của bộ công cụ thiết kế
+.devexpress/
+*.repx.bak
+node_modules/
+
+## [HỆ ĐIỀU HÀNH] File rác của Windows/macOS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+## [LOG] Các file nhật ký hệ thống
+*.log
+logs/
+publish/
