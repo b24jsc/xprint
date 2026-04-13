@@ -1,43 +1,109 @@
-﻿<h1>ASP.NET Core Reporting Application</h1>
-<div class="row">
-  <div class="col-md-4">
-    <p>Application uses</p>
-    <ul>
-      <li>Web Document Viewer</li>
-      <li>End-User Web Report Designer</li>
-      <li>Sample pages using ASP.NET Core MVC</li>
-      <li>Theming using Bootstrap</li>
-    </ul>
-  </div>
-  <div class="col-md-4">
-    <p>How to</p>
-    <ul>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/400039/getting-started-with-devexpress-reporting/adding-a-report-to-your-.net-application/adding-a-new-report-to-a-asp.net-core-application">Add a Report to an ASP.NET Core Application</a>
-      </li>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/400043/creating-end-user-reporting-applications/web-reporting/document-viewer/html5-document-viewer/quick-start/adding-the-document-viewer-to-an-asp.net-core-application">Add the Document Viewer to an ASP.NET Core Application</a>
-      </li>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/400042/creating-end-user-reporting-applications/web-reporting/report-designer/quick-start/adding-an-end-user-report-designer-to-an-asp.net-core-application">Add the End-User Report Designer to an ASP.NET Core Application</a>
-      </li>
-    </ul>
-  </div>
-  <div class="col-md-4">
-    <p>Overview</p>
-    <ul>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/2162/index">Reporting</a>
-      </li>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/119717/creating-end-user-reporting-applications/web-reporting/asp.net-core-reporting">ASP.NET Core Reporting</a>
-      </li>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/17738/creating-end-user-reporting-applications/web-reporting/document-viewer/html5-document-viewer">Web Document Viewer</a>
-      </li>
-      <li>
-        <a href="https://docs.devexpress.com/XtraReports/17103/creating-end-user-reporting-applications/web-reporting/report-designer">Web Report Designer</a>
-      </li>
-    </ul>
-  </div>
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Dashboard Tổng Quan";
+    // Đẩy data từ Backend (C#) xuống Frontend (JavaScript) dạng JSON
+    var statsJson = Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Bảng Điều Khiển Báo Cáo</h2>
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <span class="badge bg-danger fs-6">Quyền: Quản Trị Hệ Thống (B24)</span>
+        }
+        else
+        {
+            <span class="badge bg-primary fs-6">Khách Hàng: @User.FindFirst("TenantId")?.Value</span>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-4" style="background-color: var(--bs-body-bg);">
+                <div class="card-body">
+                    <div id="pieChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm mb-4" style="background-color: var(--bs-body-bg);">
+                <div class="card-body">
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <script>
+        $(function () {
+            // Lấy dữ liệu JSON từ C#
+            var dashboardData = @statsJson;
+
+            // 1. Khởi tạo Biểu đồ tròn (DevExtreme PieChart)
+            $("#pieChart").dxPieChart({
+                dataSource: dashboardData,
+                palette: "Ocean", // Màu sắc đẹp mắt của DevExpress
+                series: [{
+                    argumentField: "TenantId",
+                    valueField: "TotalReports",
+                    label: {
+                        visible: true,
+                        customizeText: function (arg) {
+                            return arg.argumentText + " (" + arg.valueText + " mẫu)";
+                        }
+                    }
+                }],
+                title: {
+                    text: "Tỷ trọng mẫu in theo Khách hàng",
+                    font: { size: 16 }
+                },
+                legend: {
+                    horizontalAlignment: "center",
+                    verticalAlignment: "bottom"
+                },
+                export: { enabled: true } // Cho phép tải biểu đồ thành ảnh
+            });
+
+            // 2. Khởi tạo Bảng dữ liệu (DevExtreme DataGrid)
+            $("#gridContainer").dxDataGrid({
+                dataSource: dashboardData,
+                showBorders: true,
+                rowAlternationEnabled: true,
+                hoverStateEnabled: true,
+                columns: [
+                    {
+                        dataField: "TenantId",
+                        caption: "Mã Khách Hàng (Tenant)",
+                        alignment: "left",
+                        cssClass: "fw-bold"
+                    },
+                    {
+                        dataField: "TotalReports",
+                        caption: "Số Mẫu In",
+                        alignment: "center",
+                        width: 120
+                    },
+                    {
+                        dataField: "LastUpdated",
+                        caption: "Lần Cập Nhật Cuối",
+                        dataType: "datetime",
+                        format: "dd/MM/yyyy HH:mm",
+                        alignment: "right",
+                        width: 180
+                    }
+                ],
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Tìm kiếm khách hàng..."
+                },
+                paging: { pageSize: 10 }
+            });
+        });
+    </script>
+}

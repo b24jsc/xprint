@@ -76,13 +76,29 @@ namespace Xprint.Services
         {
             var tenantId = GetCurrentTenantId();
 
-            // Chỉ hiển thị báo cáo của khách hàng hiện tại + Báo cáo mẫu mặc định
-            return DbContext.Reports
+            // 1. Lấy báo cáo từ Database (Key = ID ẩn, Value = Tên hiển thị)
+            var dbReports = DbContext.Reports
                 .Where(x => x.TenantId == tenantId)
-                .ToList()
-                .Select(x => x.Id)
-                .Union(ReportsFactory.Reports.Select(x => x.Key))
-                .ToDictionary<string, string>(x => x);
+                .ToDictionary(x => x.Id, x => !string.IsNullOrEmpty(x.DisplayName) ? x.DisplayName : x.Name);
+
+            // 2. Lấy các báo cáo mẫu từ thư mục PredefinedReports (TestReport)
+            var factoryReports = ReportsFactory.Reports
+                .ToDictionary(x => x.Key, x => x.Key);
+
+            // 3. Gộp 2 danh sách lại để hiển thị lên giao diện
+            var result = new Dictionary<string, string>();
+
+            foreach (var item in factoryReports)
+            {
+                result[item.Key] = item.Value;
+            }
+
+            foreach (var item in dbReports)
+            {
+                result[item.Key] = item.Value;
+            }
+
+            return result;
         }
 
         public override void SetData(XtraReport report, string url)
