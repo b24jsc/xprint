@@ -1,0 +1,71 @@
+﻿@model IEnumerable<dynamic>
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    ViewData["Title"] = "Report Manager";
+
+    // Gọi biến Antiforgery (viết hoa chữ A theo tên vừa inject ở trên)
+    var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+
+<meta name="csrf-token" content="@requestToken" />
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Kho Mẫu In Của Hệ Thống</h2>
+
+    <div class="card shadow-sm" style="background-color: var(--bs-body-bg);">
+        <div class="card-body">
+            <div id="gridContainer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content text-dark">
+            <form id="frmImportFile" enctype="multipart/form-data" onsubmit="event.preventDefault(); return false;">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import File (.repx)</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn File Báo Cáo (.repx)</label>
+                        <input class="form-control" type="file" id="fileUploadInput" name="uploadFile" accept=".repx" required>
+                        <small id="fileSizeInfo" class="text-primary mt-2 fw-bold" style="display: none;"></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên Báo Cáo (VD: PhieuKhamBenh)</label>
+                        <input type="text" class="form-control" name="reportName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gán cho Khách Hàng (Tenant)</label>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <select class="form-select" name="tenantId" required>
+                                <option value="">-- Chọn khách hàng --</option>
+                                @foreach (var t in ViewBag.Tenants)
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" name="tenantId" value="@User.FindFirst("TenantId")?.Value" readonly>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" id="btnUploadAjax" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <script src="~/js/report-manager.js" asp-append-version="true"></script>
+}
