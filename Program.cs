@@ -95,4 +95,11 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ReportDbContext>();
+    // Gõ nhẹ 1 câu lệnh để EF Core nạp Schema vào RAM trước
+    dbContext.Database.CanConnect();
+}
+
 app.Run();

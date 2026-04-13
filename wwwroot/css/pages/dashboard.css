@@ -1,0 +1,118 @@
+﻿/* --- TỔNG QUAN --- */
+.dashboard-wrapper {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Xóa màu nền cứng, để thẻ ôm trọn màu nền gốc của theme (Light/Dark) */
+    background-color: transparent;
+    padding-bottom: 2rem;
+}
+
+/* --- TIÊU ĐỀ & NÚT BẤM --- */
+.dash-header-title {
+    font-weight: 700;
+    /* Kế thừa màu chữ của body (Trắng trong Dark mode, Đen trong Light mode) */
+    color: inherit;
+    margin-bottom: 0.2rem;
+}
+
+.dash-subtitle {
+    color: inherit;
+    opacity: 0.6; /* Dùng độ mờ thay vì mã màu xám để luôn hợp nhãn trên mọi nền */
+    font-size: 0.95rem;
+}
+
+.btn-pill {
+    border-radius: 50px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Nút Featured (Xanh lá) - Vẫn giữ màu cứng vì đây là màu nhận diện thương hiệu (Brand Color) */
+.btn-dark-green {
+    background-color: #1a5d3a;
+    color: white;
+    border: none;
+}
+
+    .btn-dark-green:hover {
+        background-color: #13452b;
+        color: white;
+    }
+
+.btn-outline-custom {
+    background-color: transparent;
+    /* Dùng viền mờ dùng chung cho cả 2 theme */
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    color: inherit;
+}
+
+    .btn-outline-custom:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+
+/* --- THẺ (CARDS) --- */
+.dash-card {
+    /* Tự động lấy màu nền Thẻ của hệ thống (phù hợp với Bootstrap & DevExtreme) */
+    background-color: var(--bs-card-bg, rgba(255, 255, 255, 0.05));
+    color: inherit;
+    border-radius: 20px;
+    border: 1px solid rgba(128, 128, 128, 0.15); /* Viền mờ ngăn cách */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Bóng đổ rất nhẹ */
+    height: 100%;
+    padding: 1.5rem;
+}
+
+.card-title-sm {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: inherit;
+    opacity: 0.8; /* Làm chữ phụ mờ đi một chút */
+    margin-bottom: 1rem;
+}
+
+/* Thẻ thống kê nổi bật (Xanh lá) - Giữ nguyên vì là thẻ tạo điểm nhấn */
+.card-featured {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+    color: white;
+    border: none;
+}
+
+    .card-featured .card-title-sm,
+    .card-featured .stat-subtitle {
+        color: white;
+        opacity: 0.85;
+    }
+
+/* Thông số trong thẻ */
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: inherit;
+}
+
+.stat-subtitle {
+    font-size: 0.8rem;
+    color: inherit;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Tinh chỉnh lưới DevExtreme cho hợp tone trong suốt */
+.dx-datagrid {
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: transparent !important;
+}
+
+.dx-datagrid-headers {
+    /* Đổi màu nền Header của lưới thành mờ nhẹ thay vì màu xám cứng */
+    background-color: rgba(128, 128, 128, 0.05) !important;
+    color: inherit;
+}

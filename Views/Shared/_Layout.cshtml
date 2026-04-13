@@ -3,37 +3,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Xprint B24</title>
-
+    <title>@ViewData["Title"] - Xprint</title>
+    <link rel="icon" type="image/x-icon" href="~/lib/favicon.ico">
     <link rel="stylesheet" href="~/css/thirdparty.bundle.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/dx.dark.bundle.css" />
-
-    <style>
-        /* Tinh chỉnh nhỏ cho Navbar để phù hợp với Dark Theme */
-        .navbar-custom {
-            background-color: #222831;
-        }
-
-        .dropdown-menu-dark {
-            background-color: #393E46;
-            border: 1px solid #222831;
-        }
-
-            .dropdown-menu-dark .dropdown-item {
-                color: #eeeeee;
-            }
-
-                .dropdown-menu-dark .dropdown-item:hover {
-                    background-color: #00adb5;
-                    color: white;
-                }
-    </style>
 </head>
 <body class="dx-viewport">
-    <div class="container-fluid vh-100 d-flex flex-column p-0">
+    <div class="container-fluid vh-100 d-flex flex-column">
         <header>
-            <nav class="navbar navbar-expand-md navbar-dark navbar-custom border-bottom box-shadow">
+            <nav class="navbar navbar-expand-md navbar-dark border-bottom box-shadow">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                         <img src="~/lib/img/xbook-icon.svg" width="28" height="28" class="mr-2" alt="Xprint Logo" />
@@ -91,7 +70,7 @@
             </nav>
         </header>
 
-        <div class="container-fluid flex-grow-1 d-flex flex-column p-3">
+        <div class="container-fluid flex-grow-1 d-flex flex-column">
             <main role="main" class="flex-grow-1">
                 @RenderBody()
             </main>

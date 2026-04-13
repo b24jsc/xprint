@@ -77,6 +77,7 @@ namespace Xprint.Controllers
             return File(report.LayoutData, "application/octet-stream", fileName);
         }
 
+        // 3. TÍNH NĂNG IMPORT (Upload file .repx)
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -84,8 +85,9 @@ namespace Xprint.Controllers
         {
             try
             {
+                // 1. Validate cơ bản
                 if (uploadFile == null || uploadFile.Length == 0)
-                    return BadRequest("Lỗi: Không nhận diện được file đính kèm. Vui lòng chọn lại file.");
+                    return BadRequest("Lỗi: Không nhận diện được file đính kèm.");
 
                 if (string.IsNullOrWhiteSpace(reportName) || string.IsNullOrWhiteSpace(tenantId))
                     return BadRequest("Lỗi: Tên báo cáo và Mã khách hàng không được để trống.");
@@ -94,17 +96,19 @@ namespace Xprint.Controllers
                 if (string.IsNullOrEmpty(extension) || extension.ToLower() != ".repx")
                     return BadRequest("Lỗi bảo mật: Hệ thống chỉ chấp nhận định dạng file .repx");
 
+                // 2. Chuyển file vào RAM
                 using var memoryStream = new MemoryStream();
                 await uploadFile.CopyToAsync(memoryStream);
                 var layoutBytes = memoryStream.ToArray();
 
+                // 3. Xử lý Database
                 var existingReport = _context.Reports.FirstOrDefault(r => r.Name == reportName && r.TenantId == tenantId);
 
                 if (existingReport != null)
                 {
                     existingReport.LayoutData = layoutBytes;
                     existingReport.UpdatedAt = DateTime.UtcNow;
-                    _context.Reports.Update(existingReport); // Ép EF Core hiểu là đang update
+                    _context.Reports.Update(existingReport);
                 }
                 else
                 {
@@ -124,7 +128,7 @@ namespace Xprint.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
+                return StatusCode(500, "Lỗi Server: " + ex.Message);
             }
         }
 
@@ -186,6 +190,22 @@ namespace Xprint.Controllers
             }).ToList();
 
             return Json(reports);
+        }
+
+        [HttpGet]
+        public IActionResult GetDetailPartial(string id)
+        {
+            var report = _context.Reports.FirstOrDefault(r => r.Id == id);
+            if (report == null) return NotFound("<div class='alert alert-danger'>Không tìm thấy báo cáo.</div>");
+
+            // Nếu JSON rỗng thì cho cái ngoặc nhọn mặc định
+            if (string.IsNullOrWhiteSpace(report.JsonSchemaData))
+            {
+                report.JsonSchemaData = "{\n  \n}";
+            }
+
+            // Trả về HTML của file _Detail.cshtml, kèm theo dữ liệu Model
+            return PartialView("_Detail", report);
         }
     }
 }

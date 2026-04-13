@@ -111,6 +111,7 @@
             data: formData,
             processData: false,
             contentType: false,
+            timeout: 60000,
             success: function (res) {
                 $('#importModal').modal('hide');
                 formElement.reset(); // Xóa trắng form cũ
