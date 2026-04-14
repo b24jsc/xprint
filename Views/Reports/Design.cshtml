@@ -1,7 +1,7 @@
 ﻿@model DevExpress.XtraReports.Web.ReportDesigner.ReportDesignerModel
 
 @{
-    var designerRender = Html.DevExpress().ReportDesigner("reportDesigner")
+    var designerRender = Html.DevExpress().ReportDesigner("Design")
         .Height("100%")
         .Bind(Model);
     @designerRender.RenderHtml()

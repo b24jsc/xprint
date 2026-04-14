@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DevExpress.XtraReports.UI;
-using Microsoft.AspNetCore.Http; // Cần thiết để lấy thông tin đăng nhập
+using Microsoft.AspNetCore.Http;
 using Xprint.PredefinedReports;
 using Xprint.Data;
+using DevExpress.DataAccess.Json;
 
 namespace Xprint.Services
 {
@@ -14,30 +15,25 @@ namespace Xprint.Services
         protected ReportDbContext DbContext { get; set; }
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        // Bổ sung IHttpContextAccessor vào constructor
         public CustomReportStorageWebExtension(ReportDbContext dbContext, IHttpContextAccessor httpContextAccessor)
         {
             this.DbContext = dbContext;
             this._httpContextAccessor = httpContextAccessor;
         }
 
-        // Hàm xử lý logic lấy ID khách hàng hiện tại
         private string GetCurrentTenantId()
         {
-            // Đọc thông tin từ user đang đăng nhập qua HttpContext
             var user = _httpContextAccessor.HttpContext?.User;
 
             if (user != null && user.Identity.IsAuthenticated)
             {
-                // Lấy TenantId đã được đính kèm lúc người dùng Login
                 var tenantClaim = user.FindFirst("TenantId");
                 if (tenantClaim != null)
                 {
-                    return tenantClaim.Value; // Ví dụ trả về: "SPORTS_MEDIC" hoặc "VCN"
+                    return tenantClaim.Value;
                 }
             }
 
-            // Nếu không có, ném lỗi bắt buộc phải đăng nhập đúng chuẩn
             throw new UnauthorizedAccessException("Người dùng không thuộc tổ chức (Tenant) nào.");
         }
 
@@ -51,41 +47,71 @@ namespace Xprint.Services
             return true;
         }
 
+        // ĐÃ NÂNG CẤP HÀM NÀY ĐỂ "BẺ KHÓA" ĐƯỜNG DẪN JSON VẬT LÝ
         public override byte[] GetData(string url)
         {
             var tenantId = GetCurrentTenantId();
 
-            // 1. Tìm báo cáo trong Database theo ID và TenantId
+            // 1. Tìm layout trong DB
             var reportData = DbContext.Reports.FirstOrDefault(x => x.Id == url && x.TenantId == tenantId);
-            if (reportData != null)
-                return reportData.LayoutData;
 
-            // 2. Nếu không có trong DB, tìm trong thư mục PredefinedReports mẫu của DevExpress
-            if (ReportsFactory.Reports.ContainsKey(url))
+            XtraReport report;
+            string jsonSchema = "";
+
+            if (reportData != null)
             {
-                using var ms = new MemoryStream();
-                using XtraReport report = ReportsFactory.Reports[url]();
-                report.SaveLayoutToXml(ms);
-                return ms.ToArray();
+                // Nếu là báo cáo từ DB, lấy Layout và JSON Schema tương ứng
+                using var ms = new MemoryStream(reportData.LayoutData);
+                report = XtraReport.FromStream(ms);
+                jsonSchema = reportData.JsonSchemaData;
+            }
+            else if (ReportsFactory.Reports.ContainsKey(url))
+            {
+                // Nếu là báo cáo mẫu (Predefined), lấy từ Factory
+                report = ReportsFactory.Reports[url]();
+            }
+            else
+            {
+                // Trường hợp xấu nhất không thấy gì thì trả về mẫu trắng để Designer không bị sập
+                report = new XtraReport();
             }
 
-            throw new DevExpress.XtraReports.Web.ClientControls.FaultException(string.Format("Could not find report '{0}'.", url));
+            // 2. "MA THUẬT": Tự động nhồi JSON vào danh sách Fields
+            if (!string.IsNullOrWhiteSpace(jsonSchema))
+            {
+                // Tìm xem báo cáo có cái JsonDataSource nào chưa
+                var jsonDS = report.ComponentStorage.OfType<JsonDataSource>().FirstOrDefault();
+
+                if (jsonDS == null)
+                {
+                    // Nếu chưa có, tạo mới một cái tên là "Dữ liệu mẫu" để khách hàng kéo thả
+                    jsonDS = new JsonDataSource { Name = "Dữ liệu mẫu (Auto)" };
+                    report.ComponentStorage.Add(jsonDS);
+                    report.DataSource = jsonDS;
+                }
+                jsonDS.ConnectionName = string.Empty;
+                // Ghi đè cấu trúc JSON mới nhất từ Database vào
+                jsonDS.JsonSource = new CustomJsonSource(jsonSchema);
+                jsonDS.Fill(); // Dịch JSON thành các cột (Fields) ngay lập tức
+            }
+
+            // 3. Lưu lại và trả về byte array cho Designer hiển thị
+            using var resultStream = new MemoryStream();
+            report.SaveLayoutToXml(resultStream);
+            return resultStream.ToArray();
         }
 
         public override Dictionary<string, string> GetUrls()
         {
             var tenantId = GetCurrentTenantId();
 
-            // 1. Lấy báo cáo từ Database (Key = ID ẩn, Value = Tên hiển thị)
             var dbReports = DbContext.Reports
                 .Where(x => x.TenantId == tenantId)
                 .ToDictionary(x => x.Id, x => !string.IsNullOrEmpty(x.DisplayName) ? x.DisplayName : x.Name);
 
-            // 2. Lấy các báo cáo mẫu từ thư mục PredefinedReports (TestReport)
             var factoryReports = ReportsFactory.Reports
                 .ToDictionary(x => x.Key, x => x.Key);
 
-            // 3. Gộp 2 danh sách lại để hiển thị lên giao diện
             var result = new Dictionary<string, string>();
 
             foreach (var item in factoryReports)
@@ -107,12 +133,10 @@ namespace Xprint.Services
             using var stream = new MemoryStream();
             report.SaveLayoutToXml(stream);
 
-            // Kiểm tra xem báo cáo đã tồn tại và có đúng là của khách hàng này không
             var reportData = DbContext.Reports.FirstOrDefault(x => x.Id == url && x.TenantId == tenantId);
 
             if (reportData == null)
             {
-                // Đề phòng trường hợp ghi đè mẫu PredefinedReport, ta tạo bản copy vào DB
                 DbContext.Reports.Add(new ReportItem
                 {
                     Id = url,
@@ -125,7 +149,6 @@ namespace Xprint.Services
             }
             else
             {
-                // Cập nhật báo cáo có sẵn
                 reportData.LayoutData = stream.ToArray();
                 reportData.UpdatedAt = DateTime.UtcNow;
             }
@@ -135,8 +158,6 @@ namespace Xprint.Services
         public override string SetNewData(XtraReport report, string defaultUrl)
         {
             var tenantId = GetCurrentTenantId();
-
-            // Sinh mã GUID duy nhất để làm URL/ID, tránh trùng lặp tên giữa các khách hàng
             var newId = Guid.NewGuid().ToString();
 
             using var stream = new MemoryStream();
@@ -153,8 +174,6 @@ namespace Xprint.Services
             });
 
             DbContext.SaveChanges();
-
-            // Trả về newId để giao diện web load đúng địa chỉ
             return newId;
         }
     }

@@ -1,90 +1,207 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Xprint</title>
     <link rel="icon" type="image/x-icon" href="~/lib/favicon.ico">
+
     <link rel="stylesheet" href="~/css/thirdparty.bundle.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/dx.dark.bundle.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        /* Setup Layout tràn màn hình */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+
+        .dx-viewport {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Style cho Header Toolbar */
+        #app-toolbar {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+            padding: 5px 10px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+            .header-logo img {
+                margin-right: 10px;
+            }
+
+        /* Style cho Khung nội dung */
+        #app-drawer {
+            flex: 1;
+            height: 100%;
+            background-color: #121212;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background-color: #1a1a1a;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .app-footer {
+            border-top: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            background-color: #1e1e1e;
+        }
+    </style>
 </head>
 <body class="dx-viewport">
-    <div class="container-fluid vh-100 d-flex flex-column">
-        <header>
-            <nav class="navbar navbar-expand-md navbar-dark border-bottom box-shadow">
-                <div class="container-fluid">
-                    <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                        <img src="~/lib/img/xbook-icon.svg" width="28" height="28" class="mr-2" alt="Xprint Logo" />
-                        <span class="font-weight-bold" style="letter-spacing: 1px;">XPRINT</span>
-                    </a>
 
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
+    <div id="app-toolbar"></div>
 
-                    <div class="navbar-collapse collapse d-sm-inline-flex">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item">
-                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">
-                                    Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="ReportDesigner">
-                                    Design
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-light" asp-area="" asp-controller="ReportManager" asp-action="Index">
-                                    ReportManager
-                                </a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Cấu hình
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" asp-area="" asp-controller="User" asp-action="Index">Quản lý User</a>
-                                    <a class="dropdown-item" asp-area="" asp-controller="Settings" asp-action="Api">Cấu hình API</a>
-                                    <div class="dropdown-divider" style="border-color: #555;"></div>
-                                    <a class="dropdown-item" asp-area="" asp-controller="Settings" asp-action="Database">Kết nối Database</a>
-                                </div>
-                            </li>
-                        </ul>
-
-                        <ul class="navbar-nav">
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <li class="nav-item d-flex align-items-center">
-                                    <span class="text-info mr-3">Xin chào, <strong>@User.Identity.Name</strong></span>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="btn btn-outline-danger btn-sm mt-1" asp-area="" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-        </header>
-
-        <div class="container-fluid flex-grow-1 d-flex flex-column">
-            <main role="main" class="flex-grow-1">
+    <div id="app-drawer">
+        <div class="main-content-wrapper">
+            <main class="main-content">
                 @RenderBody()
             </main>
+            <footer class="app-footer">
+                &copy; @DateTime.Now.Year - B24 JSC Xprint Platform
+            </footer>
         </div>
-
-        <footer class="border-top footer text-muted mt-auto" style="background-color: #222831; border-color: #333 !important;">
-            <div class="container-fluid text-center">
-                <p class="mb-2 mt-2">&copy; @DateTime.Now.Year - Nền tảng quản lý báo cáo tập trung Xprint</p>
-            </div>
-        </footer>
-
-        <script src="~/js/site.thirdparty.bundle.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-        @RenderSection("Scripts", false)
     </div>
+
+    <script src="~/js/site.thirdparty.bundle.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(function () {
+            // --- 1. DỮ LIỆU MENU ---
+            var menuData = [
+                { id: "1", text: "Dashboard", icon: "home", url: '@Url.Action("Index", "Home")' },
+                {
+                    id: "2", text: "Reports", icon: "chart", expanded: true, items: [
+                        { id: "2_1", text: "Manager", icon: "folder", url: '@Url.Action("Index", "Reports")' },
+                        { id: "2_2", text: "Design", icon: "edit", url: '@Url.Action("Design", "Reports")' },
+                        { id: "2_3", text: "View", icon: "doc", url: '@Url.Action("View", "Reports")' }
+                    ]
+                },
+                {
+                    id: "3", text: "Cấu hình", icon: "preferences", items: [
+                        { id: "3_1", text: "Quản lý User", icon: "group", url: '@Url.Action("Index", "User")' },
+                        { id: "3_2", text: "Cấu hình API", icon: "globe", url: '@Url.Action("Api", "Settings")' },
+                        { id: "3_3", text: "Kết nối Database", icon: "data", url: '@Url.Action("Database", "Settings")' }
+                    ]
+                }
+            ];
+
+            // --- 2. KHỞI TẠO DRAWER (SIDEBAR) ---
+            var drawer = $("#app-drawer").dxDrawer({
+                opened: true,
+                openedStateMode: "shrink",
+                position: "left",
+                revealMode: "slide",
+                // Hàm này vẽ ra cái TreeView Menu nằm trong Sidebar
+                template: function () {
+                    var $treeView = $("<div>").dxTreeView({
+                        dataSource: menuData,
+                        selectionMode: "single",
+                        focusStateEnabled: false,
+                        hoverStateEnabled: true,
+                        expandEvent: "click",
+                        onItemClick: function (e) {
+                            if (e.itemData.url) {
+                                window.location.href = e.itemData.url;
+                            }
+                        }
+                    });
+
+                    return $("<div>").css("padding-top", "10px").append($treeView);
+                }
+            }).dxDrawer("instance");
+
+            // --- 3. KIỂM TRA ĐĂNG NHẬP (Lấy từ C#) ---
+            var isAuth = '@User.Identity.IsAuthenticated'.toLowerCase() === 'true';
+            var userName = '@(User.Identity.IsAuthenticated ? User.Identity.Name : "")';
+            var logoutUrl = '@Url.Action("Logout", "Auth")';
+
+            // --- 4. KHỞI TẠO TOOLBAR ---
+            var toolbarItems = [
+                {
+                    widget: "dxButton",
+                    location: "before",
+                    options: {
+                        icon: "menu",
+                        stylingMode: "text",
+                        onClick: function () {
+                            drawer.toggle();
+                        }
+                    }
+                },
+                {
+                    location: "before",
+                    template: function () {
+                        return $("<a href='/' class='header-logo'>")
+                            .append("<img src='/lib/img/xbook-icon.svg' width='26' height='26' alt='Logo' />")
+                            .append("<span>XPRINT</span>");
+                    }
+                }
+            ];
+
+            // Nếu đã đăng nhập, thêm phần hiển thị tên và nút Đăng xuất
+            if (isAuth) {
+                toolbarItems.push({
+                    location: "after",
+                    template: function () {
+                        return $("<div class='mr-3 text-muted'>")
+                            .append("<small>Xin chào, </small>")
+                            .append($("<span class='text-info font-weight-bold'>").text(userName));
+                    }
+                });
+
+                toolbarItems.push({
+                    widget: "dxButton",
+                    location: "after",
+                    options: {
+                        text: "Đăng xuất",
+                        icon: "runner",
+                        type: "danger",
+                        stylingMode: "outlined",
+                        onClick: function () {
+                            window.location.href = logoutUrl;
+                        }
+                    }
+                });
+            }
+
+            $("#app-toolbar").dxToolbar({
+                items: toolbarItems
+            });
+        });
+    </script>
+
+    @RenderSection("Scripts", false)
 </body>
 </html>

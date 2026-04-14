@@ -1,0 +1,53 @@
+﻿<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content text-dark">
+            <form id="frmImportFile" enctype="multipart/form-data">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">
+                        <i class="dx-icon-upload text-primary me-2"></i> Import File (.repx)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn File Báo Cáo (.repx) <span class="text-danger">*</span></label>
+                        <input class="form-control bg-light" type="file" id="fileUploadInput" name="uploadFile" accept=".repx" required>
+                        <small id="fileSizeInfo" class="text-success mt-1 fw-bold" style="display: none;"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên Báo Cáo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="reportName" placeholder="VD: PhieuKhamBenh" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gán cho Khách Hàng (Tenant) <span class="text-danger">*</span></label>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <select class="form-select" name="tenantId" required>
+                                <option value="">-- Chọn khách hàng --</option>
+                                @if (ViewBag.Tenants != null)
+                                {
+                                    foreach (var t in ViewBag.Tenants)
+                                    {
+                                        <option value="@t">@t</option>
+                                    }
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control bg-light" name="tenantId" value="@User.FindFirst("TenantId")?.Value" readonly>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" id="btnUploadAjax" class="btn btn-primary px-4 fw-bold">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

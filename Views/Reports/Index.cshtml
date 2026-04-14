@@ -1,0 +1,39 @@
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "Quản lý mẫu in";
+    var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+
+<meta name="csrf-token" content="@requestToken" />
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Report Manager</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="reloadGridData()">
+                <i class="dx-icon-refresh"></i> Làm mới
+            </button>
+
+            <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#importModal">
+                <i class="dx-icon-upload"></i> Import mới
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+        <div class="card-body p-0">
+            <div id="gridContainer"></div>
+        </div>
+    </div>
+</div>
+
+<div id="detailPopup"></div>
+
+@await Html.PartialAsync("_Import")
+
+@section Scripts {
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <script src="~/js/pages/reports-import.js" asp-append-version="true"></script>
+    <script src="~/js/pages/reports-detail.js" asp-append-version="true"></script>
+    <script src="~/js/pages/reports-index.js" asp-append-version="true"></script>
+}

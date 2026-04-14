@@ -47,23 +47,23 @@ namespace Xprint.Controllers {
             return View(model);
         }
         
-        public IActionResult ReportDesigner(
-            [FromServices] IReportDesignerModelBuilder reportDesignerModelBuilder, 
-            [FromQuery] string reportName) {
+        //public IActionResult ReportDesigner(
+        //    [FromServices] IReportDesignerModelBuilder reportDesignerModelBuilder, 
+        //    [FromQuery] string reportName) {
 
-            reportName = string.IsNullOrEmpty(reportName) ? "TestReport" : reportName;
-            var designerModel = reportDesignerModelBuilder
-                .Report(reportName)
-                .BuildModel();
-            return View(designerModel);
-        }
+        //    reportName = string.IsNullOrEmpty(reportName) ? "TestReport" : reportName;
+        //    var designerModel = reportDesignerModelBuilder
+        //        .Report(reportName)
+        //        .BuildModel();
+        //    return View(designerModel);
+        //}
 
-        public IActionResult DocumentViewer(
-            [FromServices] IWebDocumentViewerClientSideModelGenerator viewerModelGenerator,
-            [FromQuery] string reportName) {
-            reportName = string.IsNullOrEmpty(reportName) ? "TestReport" : reportName;
-            var viewerModel = viewerModelGenerator.GetModel(reportName, CustomWebDocumentViewerController.DefaultUri);
-            return View(viewerModel);
-        }
+        //public IActionResult DocumentViewer(
+        //    [FromServices] IWebDocumentViewerClientSideModelGenerator viewerModelGenerator,
+        //    [FromQuery] string reportName) {
+        //    reportName = string.IsNullOrEmpty(reportName) ? "TestReport" : reportName;
+        //    var viewerModel = viewerModelGenerator.GetModel(reportName, CustomWebDocumentViewerController.DefaultUri);
+        //    return View(viewerModel);
+        //}
     }
 }

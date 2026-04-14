@@ -30,9 +30,9 @@ namespace Xprint.Data
         public string DisplayName { get; set; } = string.Empty;
         public byte[] LayoutData { get; set; } = Array.Empty<byte>();
 
-        // Trường quan trọng để quản lý đa khách hàng
         public string TenantId { get; set; } = string.Empty;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public string JsonSchemaData { get; set; }
     }
 
     public class ReportDbContext : DbContext

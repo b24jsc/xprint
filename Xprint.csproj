@@ -49,6 +49,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Views\Report\" />
+	  <Folder Include="Views\Settings\NewFolder\" />
 	</ItemGroup>
 </Project>

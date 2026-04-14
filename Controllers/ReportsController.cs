@@ -1,58 +1,46 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DevExpress.XtraReports.Web.ReportDesigner.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.IO;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Xprint.Data;
-
+using DevExpress.DataAccess.Json;
 namespace Xprint.Controllers
 {
     [Authorize]
-    public class ReportManagerController : Controller
-    {
+    public class ReportsController : Controller
+    {   
         private readonly ReportDbContext _context;
-
-        public ReportManagerController(ReportDbContext context)
+        public ReportsController(ReportDbContext context)
         {
             _context = context;
         }
-
-        // 1. GIAO DIỆN DANH SÁCH
         public IActionResult Index()
         {
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var tenantId = User.FindFirst("TenantId")?.Value;
-
-            var query = _context.Reports.AsQueryable();
-
-            // Phân quyền: Khách chỉ thấy report của mình, B24 Admin thấy hết
-            if (role != "SuperAdmin")
-            {
-                query = query.Where(r => r.TenantId == tenantId);
-            }
-
-            var reports = query.Select(r => new
-            {
-                r.Id,
-                r.Name,
-                r.TenantId,
-                r.UpdatedAt,
-                SizeKB = r.LayoutData != null ? r.LayoutData.Length / 1024 : 0
-            }).ToList();
-
-            // Chỉ nạp danh sách Tenant cho Dropdown nếu người đó là SuperAdmin
             if (role == "SuperAdmin")
             {
                 ViewBag.Tenants = _context.Users.Select(u => u.TenantId).Distinct().ToList();
             }
-
-            return View(reports);
+            return View();
         }
 
-        // 2. TÍNH NĂNG EXPORT (Tải file .repx về máy)
+        public IActionResult Design(
+            [FromServices] IReportDesignerModelBuilder reportDesignerModelBuilder,
+            [FromQuery] string reportName)
+        {
+
+            reportName = string.IsNullOrEmpty(reportName) ? "TestReport" : reportName;
+            var designerModel = reportDesignerModelBuilder
+                .Report(reportName)
+                .BuildModel();
+            return View(designerModel);
+        }
+
         [HttpGet]
         public IActionResult Export(string id)
         {
@@ -77,7 +65,6 @@ namespace Xprint.Controllers
             return File(report.LayoutData, "application/octet-stream", fileName);
         }
 
-        // 3. TÍNH NĂNG IMPORT (Upload file .repx)
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -132,9 +119,8 @@ namespace Xprint.Controllers
             }
         }
 
-        // 4. TÍNH NĂNG XÓA (Delete Report)
         [HttpPost]
-        [ValidateAntiForgeryToken] // Chống giả mạo Request từ bên ngoài
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
             try
@@ -206,6 +192,61 @@ namespace Xprint.Controllers
 
             // Trả về HTML của file _Detail.cshtml, kèm theo dữ liệu Model
             return PartialView("_Detail", report);
+        }
+
+        [HttpGet]
+        public IActionResult GetJsonSchema(string id)
+        {
+            var report = _context.Reports.FirstOrDefault(r => r.Id == id);
+            if (report == null) return NotFound("Không tìm thấy báo cáo.");
+
+            // Nếu chưa có JSON, trả về một mẫu mặc định cho họ dễ hình dung
+            var jsonContent = string.IsNullOrWhiteSpace(report.JsonSchemaData)
+                ? "{\n  \"Id\": 1,\n  \"Name\": \"Dữ liệu mẫu\"\n}"
+                : report.JsonSchemaData;
+
+            return Content(jsonContent, "application/json");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateJsonSchema([FromForm] string id, [FromForm] string jsonContent)
+        {
+            try
+            {
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                var tenantId = User.FindFirst("TenantId")?.Value;
+
+                var report = _context.Reports.FirstOrDefault(r => r.Id == id);
+                if (report == null) return NotFound("Không tìm thấy báo cáo.");
+
+                // Bảo mật chéo
+                if (role != "SuperAdmin" && report.TenantId != tenantId)
+                    return Forbid("Bạn không có quyền sửa dữ liệu này.");
+
+                // Kiểm tra xem chuỗi họ nhập vào có phải là JSON hợp lệ không (Basic Validation)
+                if (!string.IsNullOrWhiteSpace(jsonContent))
+                {
+                    jsonContent = jsonContent.Trim();
+                    if ((!jsonContent.StartsWith("{") || !jsonContent.EndsWith("}")) &&
+                        (!jsonContent.StartsWith("[") || !jsonContent.EndsWith("]")))
+                    {
+                        return BadRequest("Dữ liệu không đúng định dạng JSON (phải bắt đầu bằng { hoặc [).");
+                    }
+                }
+
+                report.JsonSchemaData = jsonContent;
+                report.UpdatedAt = DateTime.UtcNow;
+
+                _context.Reports.Update(report);
+                await _context.SaveChangesAsync();
+
+                return Ok("Đã lưu cấu trúc JSON thành công!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi Server: " + ex.Message);
+            }
         }
     }
 }
