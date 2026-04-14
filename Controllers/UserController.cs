@@ -5,7 +5,7 @@ using Xprint.Data;
 
 namespace Xprint.Controllers
 {
-    //[Authorize(Roles = "SuperAdmin")] // Chốt chặn bảo mật
+    [Authorize(Roles = "SuperAdmin")] // Chốt chặn bảo mật
     public class UserController : Controller
     {
         private readonly ReportDbContext _context;
