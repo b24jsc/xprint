@@ -1,0 +1,15 @@
+<div class="oauth-button-container">
+    <p>or</p>
+    @(Html.DevExtreme().Button()
+                    .Width("100%")
+                    .Icon("/css/icons/google-logo.svg")
+                    .Text("Log In with Google")
+                    .StylingMode(ButtonStylingMode.Contained)
+                    )
+    @(Html.DevExtreme().Button()
+                    .Width("100%")
+                    .Icon("/css/icons/microsoft-logo.svg")
+                    .Text("Log In with Microsoft")
+                    .StylingMode(ButtonStylingMode.Contained)
+                    )
+</div>

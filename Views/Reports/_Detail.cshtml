@@ -1,6 +1,6 @@
 ﻿@model Xprint.Data.ReportItem
 
-<div id="detailPanelContainer">
+<div id="detailPanelContainer" class="p-2">
     <div class="mb-4">
         <label class="text-muted small fw-bold text-uppercase d-block mb-1">Mã báo cáo (ID)</label>
         <div class="p-2 bg-light border rounded font-monospace small">@Model.Id</div>
@@ -11,22 +11,57 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Tên mẫu in</label>
-            <input type="text" class="form-control bg-light" value="@Model.Name" readonly />
+            @(Html.DevExtreme().TextBoxFor(m => m.Name).ReadOnly(true))
         </div>
 
         <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <label class="form-label fw-bold mb-0">Dữ liệu JSON mẫu (Schema)</label>
-                <button type="button" id="btnFormatJson" class="btn btn-link btn-sm p-0 text-decoration-none">Định dạng JSON</button>
+                @(Html.DevExtreme().Button().Text("Định dạng JSON").StylingMode(ButtonStylingMode.Text).Icon("indent").OnClick("formatJson"))
             </div>
-            <textarea id="jsonEditor" name="jsonContent" class="form-control font-monospace" rows="18"
-                      style="background-color: #1e1e1e; color: #d4d4d4; font-size: 13px; line-height: 1.5; border-radius: 8px; padding: 15px;">@Model.JsonSchemaData</textarea>
+
+            @(Html.DevExtreme().TextAreaFor(m => m.JsonSchemaData)
+                .ID("jsonEditor")
+                .Height(350)
+                .ElementAttr("style", "background-color: #1e1e1e; color: #d4d4d4; font-family: monospace;")
+                )
         </div>
 
-        <div class="d-grid gap-2 mt-4">
-            <button type="button" class="btn btn-primary py-2 fw-bold" id="btnSaveJsonDetail">
-                <i class="dx-icon-save me-1"></i> LƯU CẤU HÌNH
-            </button>
+        <div class="mt-4">
+            @(Html.DevExtreme().Button().Text("LƯU CẤU HÌNH").Type(ButtonType.Success).Icon("save").Width("100%").OnClick("saveJsonDetail"))
         </div>
     </form>
 </div>
+
+<script>
+    function formatJson() {
+        try {
+            var editor = $("#jsonEditor").dxTextArea("instance");
+            var obj = JSON.parse(editor.option("value"));
+            editor.option("value", JSON.stringify(obj, null, 4));
+            DevExpress.ui.notify("Đã căn chỉnh JSON", "info", 1500);
+        } catch (e) {
+            DevExpress.ui.notify("JSON không hợp lệ!", "error", 2000);
+        }
+    }
+
+    function saveJsonDetail(e) {
+        var formElement = $('#frmUpdateJson')[0];
+        var formData = new FormData(formElement);
+        formData.append('__RequestVerificationToken', csrfToken); // Token từ Index
+
+        var btn = e.component;
+        btn.option("text", "Đang lưu..."); btn.option("disabled", true);
+
+        $.ajax({
+            url: '/Reports/UpdateJsonSchema', type: 'POST', data: formData, processData: false, contentType: false,
+            success: function (res) {
+                DevExpress.ui.notify(res, "success", 2000);
+                $("#detailPopup").dxPopup("instance").hide();
+                refreshGrid();
+            },
+            error: function (xhr) { DevExpress.ui.notify(xhr.responseText, "error", 2000); },
+            complete: function() { btn.option("text", "LƯU CẤU HÌNH"); btn.option("disabled", false); }
+        });
+    }
+</script>

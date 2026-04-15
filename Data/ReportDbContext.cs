@@ -25,7 +25,7 @@ namespace Xprint.Data
     public class ReportItem
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString(); // Dùng chuỗi để khớp với URL của DevExpress
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public byte[] LayoutData { get; set; } = Array.Empty<byte>();

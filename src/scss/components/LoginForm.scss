@@ -1,0 +1,18 @@
+@use "../common/variables.scss" as *;
+@use "sass:math";
+
+.login-form {
+    .form-text {
+        color: var(--base-text-color-alpha);
+    }
+}
+
+.reset-link {
+    text-align: center;
+    font-style: normal;
+    margin: 6px 0 50px 0;
+
+    a {
+        cursor: pointer;
+    }
+}

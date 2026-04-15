@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta name="author" content="DevExpress"/>
+    <meta name="description" content="Professionally designed UI templates essential for modern LOB and SaaS web apps. Powered by high-performance DevExtreme ASP.Net Core UI components." />
+    @await Html.PartialAsync("_CommonStyles")
+    <link href="~/css/layout/layout.css" rel="stylesheet" />
+
+    @await Html.PartialAsync("_CommonScripts")
+</head>
+
+<body class="dx-viewport">
+    <div class="app screen-large">
+     @(Html.DevExtreme().ScrollView()
+         .ElementAttr(new { @class = "view-wrapper-scroll single-card" })
+         .Height("100%")
+         .Width("100%")
+         .Content(@<text>
+                <div class="content" data-placeholder-id="auth-layout-body">
+                    @RenderBody()
+                </div>
+            </text>)
+     )
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function documentReady() {
+            this.removeEventListener("DOMContentLoaded", documentReady);
+            const app = window.uitgAppContext;
+            app.ThemeController.init();
+            app.SPARouter.init();
+        });
+    </script>
+</body>
+
+</html>

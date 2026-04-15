@@ -1,46 +1,59 @@
 ﻿$(function () {
-    // 1. SỰ KIỆN ĐỊNH DẠNG JSON (EVENT DELEGATION)
-    $(document).on('click', '#btnFormatJson', function () {
-        try {
-            const content = $('#jsonEditor').val();
-            const obj = JSON.parse(content);
-            $('#jsonEditor').val(JSON.stringify(obj, null, 4));
-            DevExpress.ui.notify("Đã căn chỉnh JSON", "info", 1500);
-        } catch (e) {
-            alert("JSON không hợp lệ để định dạng!");
-        }
-    });
+    const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-    // 2. SỰ KIỆN LƯU JSON (EVENT DELEGATION)
-    $(document).on('click', '#btnSaveJsonDetail', function () {
-        const btn = $(this);
+    // Hàm khởi tạo dxButton sau khi HTML được load vào Popup
+    // Bắt sự kiện contentReady của Popup Detail (Từ index)
+    if (window.detailPopup) {
+        window.detailPopup.on("contentReady", function (e) {
+            // Khởi tạo nút format
+            $("#btnFormatJson").dxButton({
+                text: "Định dạng JSON",
+                icon: "indent",
+                stylingMode: "text",
+                type: "default",
+                onClick: function () {
+                    try {
+                        const obj = JSON.parse($('#jsonEditor').val());
+                        $('#jsonEditor').val(JSON.stringify(obj, null, 4));
+                        DevExpress.ui.notify("Đã căn chỉnh JSON", "info", 1500);
+                    } catch (err) {
+                        DevExpress.ui.notify("JSON không hợp lệ!", "error", 2000);
+                    }
+                }
+            });
 
-        // Lấy form đang nằm trong Offcanvas
-        const formElement = $('#frmUpdateJson')[0];
-        if (!formElement) {
-            alert("Lỗi: Không tìm thấy Form dữ liệu!");
-            return;
-        }
+            // Khởi tạo nút Save
+            $("#btnSaveJsonDetail").dxButton({
+                text: "LƯU CẤU HÌNH",
+                icon: "save",
+                type: "success", // Nút xanh lá chuẩn DX
+                onClick: function (e) {
+                    const btn = e.component;
+                    const formElement = $('#frmUpdateJson')[0];
 
-        const formData = new FormData(formElement);
-        formData.append('__RequestVerificationToken', $('meta[name="csrf-token"]').attr('content'));
+                    const formData = new FormData(formElement);
+                    formData.append('__RequestVerificationToken', csrfToken);
 
-        btn.prop('disabled', true).text('Đang lưu...');
+                    btn.option("text", "Đang lưu...");
+                    btn.option("disabled", true);
 
-        $.ajax({
-            url: '/Reports/UpdateJsonSchema',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                DevExpress.ui.notify(res, "success", 2000);
-                btn.prop('disabled', false).html('<i class="dx-icon-save me-1"></i> LƯU CẤU HÌNH');
-            },
-            error: function (xhr) {
-                alert(xhr.responseText);
-                btn.prop('disabled', false).text('Lưu lại');
-            }
+                    $.ajax({
+                        url: '/Reports/UpdateJsonSchema', type: 'POST', data: formData, processData: false, contentType: false,
+                        success: function (res) {
+                            DevExpress.ui.notify(res, "success", 2000);
+                            window.detailPopup.hide();
+                            if (window.reloadGridData) window.reloadGridData();
+                        },
+                        error: function (xhr) {
+                            DevExpress.ui.notify(xhr.responseText || "Lỗi lưu dữ liệu", "error", 2000);
+                        },
+                        complete: function () {
+                            btn.option("text", "LƯU CẤU HÌNH");
+                            btn.option("disabled", false);
+                        }
+                    });
+                }
+            });
         });
-    });
+    }
 });

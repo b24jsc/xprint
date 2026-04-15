@@ -1,0 +1,89 @@
+﻿/* 1. Reset & Full Height Flexbox */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    overflow: hidden;
+}
+
+.dx-viewport {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 2. Style cho Header Toolbar (Nổi khối, có Shadow giống demo) */
+.app-header {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1500; /* Luôn nằm trên Drawer */
+    padding: 5px 15px;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none !important;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+}
+
+    .header-logo img {
+        margin-right: 12px;
+    }
+
+/* 3. Style cho Drawer (Sidebar) */
+#app-drawer {
+    flex: 1;
+    height: 100%;
+    background-color: #1e1e1e;
+}
+
+.sidebar-menu {
+    height: 100%;
+    background-color: #1e1e1e;
+    border-right: 1px solid #333;
+    padding-top: 15px;
+}
+
+/* 4. Tinh chỉnh TreeView bên trong Sidebar cho sang trọng hơn */
+.dx-treeview-node {
+    padding: 5px 0;
+}
+
+.dx-treeview-item:hover {
+    background-color: #2a2a2a !important;
+    color: #00d2ff !important;
+}
+
+.dx-treeview-item.dx-state-focused, .dx-treeview-item.dx-state-selected {
+    background-color: #333 !important;
+    color: #00d2ff !important;
+    border-right: 3px solid #00d2ff;
+}
+
+/* 5. Khung nội dung chính */
+.main-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: #121212;
+}
+
+.main-content {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+}
+
+.app-footer {
+    border-top: 1px solid #333;
+    padding: 12px;
+    text-align: center;
+    color: #888;
+    font-size: 0.85rem;
+    background-color: #1e1e1e;
+}

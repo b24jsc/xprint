@@ -1,53 +1,72 @@
-﻿<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content text-dark">
-            <form id="frmImportFile" enctype="multipart/form-data">
-                <div class="modal-header border-bottom">
-                    <h5 class="modal-title fw-bold">
-                        <i class="dx-icon-upload text-primary me-2"></i> Import File (.repx)
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Chọn File Báo Cáo (.repx) <span class="text-danger">*</span></label>
-                        <input class="form-control bg-light" type="file" id="fileUploadInput" name="uploadFile" accept=".repx" required>
-                        <small id="fileSizeInfo" class="text-success mt-1 fw-bold" style="display: none;"></small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tên Báo Cáo <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="reportName" placeholder="VD: PhieuKhamBenh" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Gán cho Khách Hàng (Tenant) <span class="text-danger">*</span></label>
-                        @if (User.IsInRole("SuperAdmin"))
-                        {
-                            <select class="form-select" name="tenantId" required>
-                                <option value="">-- Chọn khách hàng --</option>
-                                @if (ViewBag.Tenants != null)
-                                {
-                                    foreach (var t in ViewBag.Tenants)
-                                    {
-                                        <option value="@t">@t</option>
-                                    }
-                                }
-                            </select>
-                        }
-                        else
-                        {
-                            <input type="text" class="form-control bg-light" name="tenantId" value="@User.FindFirst("TenantId")?.Value" readonly>
-                        }
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" id="btnUploadAjax" class="btn btn-primary px-4 fw-bold">Import</button>
-                </div>
-            </form>
-        </div>
+﻿<form id="frmImportFile" enctype="multipart/form-data" class="p-3">
+    <div class="mb-3">
+        <label class="form-label fw-bold">Chọn File Báo Cáo (.repx) <span class="text-danger">*</span></label>
+        <input class="form-control" type="file" id="fileUploadInput" name="uploadFile" accept=".repx" required>
     </div>
-</div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Tên Báo Cáo <span class="text-danger">*</span></label>
+        @(Html.DevExtreme().TextBox()
+            .Name("reportName")
+            .Placeholder("VD: PhieuKhamBenh")
+            )
+    </div>
+
+    <div class="mb-4">
+        <label class="form-label fw-bold">Gán cho Khách Hàng (Tenant) <span class="text-danger">*</span></label>
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            @(Html.DevExtreme().SelectBox()
+                .Name("tenantId")
+                .DataSource((IEnumerable<string>)ViewBag.Tenants)
+                .Placeholder("-- Chọn khách hàng --")
+                .SearchEnabled(true)
+                )
+        }
+        else
+        {
+            @(Html.DevExtreme().TextBox()
+                .Name("tenantId")
+                .Value(User.FindFirst("TenantId")?.Value)
+                .ReadOnly(true)
+                )
+        }
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+        @(Html.DevExtreme().Button().Text("Hủy").OnClick("closeImportPopup"))
+        @(Html.DevExtreme().Button().Text("Import").Type(ButtonType.Default).Icon("upload").UseSubmitBehavior(false).OnClick("submitImportForm"))
+    </div>
+</form>
+
+<script>
+    function closeImportPopup() {
+        $("#importPopup").dxPopup("instance").hide();
+    }
+
+    function submitImportForm(e) {
+        var formElement = $('#frmImportFile')[0];
+        if (!formElement.checkValidity()) {
+            formElement.reportValidity(); return;
+        }
+
+        var formData = new FormData(formElement);
+        formData.append('__RequestVerificationToken', csrfToken); // token lấy từ Index
+
+        var btn = e.component;
+        btn.option("text", "Đang tải...");
+        btn.option("disabled", true);
+
+        $.ajax({
+            url: '/Reports/Import', type: 'POST', data: formData, processData: false, contentType: false,
+            success: function (res) {
+                closeImportPopup();
+                formElement.reset();
+                DevExpress.ui.notify(res, "success", 2000);
+                refreshGrid(); // Hàm bên Index
+            },
+            error: function (xhr) { DevExpress.ui.notify(xhr.responseText, "error", 3000); },
+            complete: function() { btn.option("text", "Import"); btn.option("disabled", false); }
+        });
+    }
+</script>

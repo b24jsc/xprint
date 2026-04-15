@@ -43,7 +43,12 @@ builder.Services.ConfigureReportingServices(configurator => {
         viewerConfigurator.RegisterConnectionProviderFactory<CustomSqlDataConnectionProviderFactory>();
     });
 });
-
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // Giữ nguyên tên thuộc tính như trong C# (không bị biến thành chữ thường)
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 // 2. [SỬA LẠI] Kết nối PostgreSQL thay vì SQLite
 // Đổi UseSqlite thành UseNpgsql và lấy đúng key "ReportDbConnection" trong appsettings.json
 builder.Services.AddDbContext<ReportDbContext>(options =>

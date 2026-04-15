@@ -5,131 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Xprint</title>
     <link rel="icon" type="image/x-icon" href="~/lib/favicon.ico">
-
-    <link rel="stylesheet" href="~/css/thirdparty.bundle.css" />
-    <link rel="stylesheet" href="~/css/dx.dark.bundle.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-
-    
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
-
-    <script src="~/js/site.thirdparty.bundle.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <style>
-        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #1a1a1a; }
-        .dx-viewport { height: 100%; display: flex; flex-direction: column; }
-        .app-header { background-color: #1e1e1e; border-bottom: 1px solid #333; padding: 0 10px; }
-        .header-logo { display: flex; align-items: center; text-decoration: none !important; color: #fff; font-weight: 600; font-size: 1.2rem; letter-spacing: 1px; }
-        .header-logo img { margin-right: 10px; }
-        
-        #app-drawer { flex: 1; height: 100%; }
-        .sidebar-menu { height: 100%; background-color: #121212; border-right: 1px solid #333; padding-top: 10px; }
-        
-        .main-content-wrapper { display: flex; flex-direction: column; height: 100%; width: 100%; overflow-y: auto; background-color: #1a1a1a; }
-        .main-content { flex: 1; padding: 20px; }
-        .app-footer { border-top: 1px solid #333; padding: 10px; text-align: center; color: #888; font-size: 0.85rem; background-color: #1e1e1e;}
-    </style>
+    <link rel="stylesheet" href="~/css/thirdparty.bundle.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/app-layout.css" asp-append-version="true" />
+    <script src="~/js/site.thirdparty.bundle.js" asp-append-version="true"></script>
 </head>
-<body class="dx-viewport">
-
+<body class="dx-viewport dx-cloak">
     <div class="app-header">
-        @(Html.DevExtreme().Toolbar()
-            .Items(items => {
-                items.Add().Location(ToolbarItemLocation.Before).Widget(w => 
-                    w.Button().Icon("menu").StylingMode(ButtonStylingMode.Text).OnClick("toggleDrawer")
-                );
-
-                items.Add().Location(ToolbarItemLocation.Before).Template(@<text>
-                    <a href="/" class="header-logo">
-                        <img src="~/lib/img/xbook-icon.svg" width="26" height="26" alt="Logo" />
-                        XPRINT
-                    </a>
-                </text>);
-
-                if (User.Identity.IsAuthenticated)
-                {
-                    items.Add().Location(ToolbarItemLocation.After).Template(@<text>
-                        <div class="mr-3 text-muted">
-                            <small>Xin chào,</small> <span class="text-info font-weight-bold">@User.Identity.Name</span>
-                        </div>
-                    </text>);
-
-                    items.Add().Location(ToolbarItemLocation.After).Widget(w => 
-                        w.Button().Text("Đăng xuất").Icon("runner").Type(ButtonType.Danger).StylingMode(ButtonStylingMode.Outlined)
-                        .OnClick("logout")
-                    );
-                }
-            })
-        )
+        <div id="toolbar"></div>
+    </div>
+    <div id="app-drawer">
+        <div class="main-content-wrapper">
+            <main class="main-content">
+                @RenderBody()
+            </main>
+            <footer class="app-footer">
+                &copy; @DateTime.Now.Year - Nền tảng quản lý báo cáo tập trung Xprint
+            </footer>
+        </div>
     </div>
 
-    @(Html.DevExtreme().Drawer()
-        .ID("app-drawer")
-        .OpenedStateMode(DrawerOpenedStateMode.Shrink)
-        .Position(DrawerPosition.Left)
-        .RevealMode(DrawerRevealMode.Slide)
-        .Opened(true)
-        .Template(new TemplateName("Sidebar-Menu-Template")) // Gọi Template rời cho gọn
-        .Content(@<text>
-            <div class="main-content-wrapper">
-                <main class="main-content">
-                    @RenderBody()
-                </main>
-                <footer class="app-footer">
-                    &copy; @DateTime.Now.Year - B24 JSC Xprint Platform
-                </footer>
-            </div>
-        </text>)
-    )
-
-    @using (Html.DevExtreme().NamedTemplate("Sidebar-Menu-Template"))
-    {
-        <div class="sidebar-menu">
-            @(Html.DevExtreme().TreeView()
-                .ID("navigation-treeview")
-                .ExpandEvent(TreeViewExpandEvent.Click)
-                .SelectionMode(NavSelectionMode.Single)
-                .FocusStateEnabled(false)
-                .HoverStateEnabled(true)
-                .Items(items => {
-                    items.Add().Text("Dashboard").Icon("home").Option("url", Url.Action("Index", "Home"));
-
-                    items.Add().Text("Reports").Icon("chart").Expanded(true).Items(reports => {
-                        reports.Add().Text("Manager").Icon("folder").Option("url", Url.Action("Index", "Reports"));
-                        reports.Add().Text("Design").Icon("edit").Option("url", Url.Action("Design", "Reports"));
-                        reports.Add().Text("View").Icon("doc").Option("url", Url.Action("View", "Reports"));
-                    });
-
-                    items.Add().Text("Cấu hình").Icon("preferences").Items(config => {
-                        config.Add().Text("Quản lý User").Icon("group").Option("url", Url.Action("Index", "User"));
-                        config.Add().Text("Cấu hình API").Icon("globe").Option("url", Url.Action("Api", "Settings"));
-                        config.Add().Text("Kết nối Database").Icon("data").Option("url", Url.Action("Database", "Settings"));
-                    });
-                })
-                .OnItemClick("onMenuItemClick")
-            )
-        </div>
-    }
-
-    
     <script>
-        function toggleDrawer() {
-            var drawer = $("#app-drawer").dxDrawer("instance");
-            drawer.toggle();
-        }
-
-        function onMenuItemClick(e) {
-            if (e.itemData.url) {
-                window.location.href = e.itemData.url;
-            }
-        }
-
-        function logout() {
-            window.location.href = '@Url.Action("Logout", "Auth")';
-        }
+        // Bơm dữ liệu từ C# xuống JS
+        var appUrls = {
+            homeIndex: '@Url.Action("Index", "Home")',
+            reportsIndex: '@Url.Action("Index", "Reports")',
+            reportsDesign: '@Url.Action("Design", "Reports")',
+            reportsView: '@Url.Action("View", "Reports")',
+            userIndex: '@Url.Action("Index", "User")',
+            authLogout: '@Url.Action("Logout", "Auth")'
+        };
     </script>
-
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

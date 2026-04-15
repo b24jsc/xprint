@@ -1,4 +1,5 @@
-﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+﻿@using Xprint.Data
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     ViewData["Title"] = "Quản lý mẫu in";
     var requestToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
@@ -7,32 +8,121 @@
 <meta name="csrf-token" content="@requestToken" />
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Report Manager</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm" onclick="reloadGridData()">
-                <i class="dx-icon-refresh"></i> Làm mới
-            </button>
+    @(Html.DevExtreme().DataGrid<ReportItem>()
+        .ID("gridContainer")
+        .DataSource(ds => ds.Mvc()
+        .Controller("Reports")
+        .LoadAction("GetReportsList")
+        .Key("Id")
+        )
+        .ShowBorders(true)
+        .RowAlternationEnabled(true)
+        .HoverStateEnabled(true)
+        .SearchPanel(sp => sp.Visible(true).Width(300).Placeholder("Tìm kiếm mẫu in..."))
+        .Paging(p => p.PageSize(12))
+        .Toolbar(t =>
+        {
+            // Nút tiêu đề
+            t.Items(i =>
+            {
+                i.Add().Location(ToolbarItemLocation.Before)
+                .Template("<h2 class='fw-bold mb-0' style='font-size: 20px;'>Report Manager</h2>");
 
-            <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#importModal">
-                <i class="dx-icon-upload"></i> Import mới
-            </button>
-        </div>
-    </div>
+                // Nút Làm mới
+                i.Add().Location(ToolbarItemLocation.After)
+                .Widget(w => w.Button().Icon("refresh").Text("Làm mới").OnClick("refreshGrid"));
 
-    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
-        <div class="card-body p-0">
-            <div id="gridContainer"></div>
-        </div>
-    </div>
+                // Nút Import
+                i.Add().Location(ToolbarItemLocation.After)
+                .Widget(w => w.Button().Icon("upload").Text("Import mới").Type(ButtonType.Default).OnClick("showImportPopup"));
+            });
+        })
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.Name).Caption("Tên Mẫu In").CssClass("fw-bold");
+            columns.AddFor(m => m.TenantId).Caption("Khách Hàng (Tenant)").Width(200);
+            columns.AddFor(m => m.UpdatedAt).Caption("Cập Nhật Cuối").DataType(GridColumnDataType.DateTime).Format("dd/MM/yyyy HH:mm").Width(160);
+
+            // Cột Nút bấm
+            columns.Add().Type(GridCommandColumnType.Buttons).Width(120).Buttons(b =>
+            {
+                b.Add().Icon("textdocument").Hint("Chi tiết & Cấu hình JSON").OnClick("showDetailPopup");
+                b.Add().Icon("download").Hint("Tải file (.repx)").OnClick("downloadReport");
+                b.Add().Icon("trash").Hint("Xóa báo cáo").CssClass("text-danger").OnClick("deleteReport");
+            });
+        })
+        )
 </div>
 
-<div id="detailPopup"></div>
+@(Html.DevExtreme().Popup()
+    .ID("importPopup")
+    .Width(500)
+    .Height(500)
+    .ShowTitle(true)
+    .Title("Import File (.repx)")
+    .Visible(false)
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+    .ContentTemplate(new TemplateName("importTemplate"))
+)
 
-@await Html.PartialAsync("_Import")
+@(Html.DevExtreme().Popup()
+    .ID("detailPopup")
+    .Width(700)
+    .Height("85%")
+    .ShowTitle(true)
+    .Title("Chi tiết & Cấu hình JSON")
+    .Visible(false)
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+)
 
-@section Scripts {
-    <script src="~/js/pages/reports-import.js" asp-append-version="true"></script>
-    <script src="~/js/pages/reports-detail.js" asp-append-version="true"></script>
-    <script src="~/js/pages/reports-index.js" asp-append-version="true"></script>
+@using (Html.DevExtreme().NamedTemplate("importTemplate"))
+{
+    @await Html.PartialAsync("_Import")
 }
+
+<script>
+    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+    function refreshGrid() {
+        $("#gridContainer").dxDataGrid("instance").refresh();
+    }
+
+    function showImportPopup() {
+        $("#importPopup").dxPopup("instance").show();
+    }
+
+    // Xử lý nút Click Chi tiết
+    function showDetailPopup(e) {
+        var id = e.row.data.Id; // Hoặc id tùy vào JSON trả về viết hoa hay thường
+        var popup = $("#detailPopup").dxPopup("instance");
+
+        popup.show();
+        var content = popup.content();
+        content.html('<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>');
+
+        // Tải PartialView Detail
+        $.get('/Reports/GetDetailPartial?id=' + id, function(html) {
+            content.html(html);
+        });
+    }
+
+    function downloadReport(e) {
+        window.location.href = '/Reports/Export?id=' + e.row.data.Id;
+    }
+
+    function deleteReport(e) {
+        var data = e.row.data;
+        DevExpress.ui.dialog.confirm(`Bạn có chắc muốn xóa <b>${data.Name}</b> không?`, "Xác nhận xóa").done(function (dialogResult) {
+            if (dialogResult) {
+                $.post('/Reports/Delete', { id: data.Id, __RequestVerificationToken: csrfToken }, function(res) {
+                    DevExpress.ui.notify(res, "success", 2000);
+                    refreshGrid();
+                }).fail(function(xhr) {
+                    DevExpress.ui.notify("Lỗi: " + xhr.responseText, "error", 3000);
+                });
+            }
+        });
+    }
+</script>
