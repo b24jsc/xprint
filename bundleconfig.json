@@ -250,7 +250,6 @@
       "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
       "node_modules/devextreme-dist/js/dx.all.js",
       "node_modules/devextreme-dist/js/dx.aspnet.mvc.js",
-      "node_modules/devextreme-dist/js/dx.aspnet.data.js",
       "node_modules/devextreme-aspnet-data/js/dx.aspnet.data.js"
     ],
     "minify": {

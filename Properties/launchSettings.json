@@ -2,7 +2,12 @@
   "profiles": {
     "Xprint": {
       "commandName": "Project",
-      "launchBrowser": true
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5123",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     },
      "Docker": {
       "commandName": "Docker",

@@ -38,35 +38,3 @@
         @(Html.DevExtreme().Button().Text("Import").Type(ButtonType.Default).Icon("upload").UseSubmitBehavior(false).OnClick("submitImportForm"))
     </div>
 </form>
-
-<script>
-    function closeImportPopup() {
-        $("#importPopup").dxPopup("instance").hide();
-    }
-
-    function submitImportForm(e) {
-        var formElement = $('#frmImportFile')[0];
-        if (!formElement.checkValidity()) {
-            formElement.reportValidity(); return;
-        }
-
-        var formData = new FormData(formElement);
-        formData.append('__RequestVerificationToken', csrfToken); // token lấy từ Index
-
-        var btn = e.component;
-        btn.option("text", "Đang tải...");
-        btn.option("disabled", true);
-
-        $.ajax({
-            url: '/Reports/Import', type: 'POST', data: formData, processData: false, contentType: false,
-            success: function (res) {
-                closeImportPopup();
-                formElement.reset();
-                DevExpress.ui.notify(res, "success", 2000);
-                refreshGrid(); // Hàm bên Index
-            },
-            error: function (xhr) { DevExpress.ui.notify(xhr.responseText, "error", 3000); },
-            complete: function() { btn.option("text", "Import"); btn.option("disabled", false); }
-        });
-    }
-</script>

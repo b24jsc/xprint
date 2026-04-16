@@ -50,18 +50,35 @@
         var formData = new FormData(formElement);
         formData.append('__RequestVerificationToken', csrfToken); // Token từ Index
 
+        // 👉 DÒNG CODE VÀNG ĐỂ FIX LỖI:
+        // Lấy giá trị trực tiếp từ lõi của DevExtreme TextArea
+        var editorValue = $("#jsonEditor").dxTextArea("instance").option("value");
+        // Ép dữ liệu vào FormData với đúng tên biến 'jsonContent' mà C# đang đợi
+        formData.set('jsonContent', editorValue);
+
         var btn = e.component;
-        btn.option("text", "Đang lưu..."); btn.option("disabled", true);
+        btn.option("text", "Đang lưu...");
+        btn.option("disabled", true);
 
         $.ajax({
-            url: '/Reports/UpdateJsonSchema', type: 'POST', data: formData, processData: false, contentType: false,
+            url: '/Reports/UpdateJsonSchema',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (res) {
                 DevExpress.ui.notify(res, "success", 2000);
                 $("#detailPopup").dxPopup("instance").hide();
-                refreshGrid();
+                // Nhớ đảm bảo hàm refreshGrid() của anh đã được định nghĩa ở ngoài file index nhé
+                if(typeof refreshGrid === 'function') refreshGrid();
             },
-            error: function (xhr) { DevExpress.ui.notify(xhr.responseText, "error", 2000); },
-            complete: function() { btn.option("text", "LƯU CẤU HÌNH"); btn.option("disabled", false); }
+            error: function (xhr) {
+                DevExpress.ui.notify(xhr.responseText, "error", 2000);
+            },
+            complete: function() {
+                btn.option("text", "LƯU CẤU HÌNH");
+                btn.option("disabled", false);
+            }
         });
     }
 </script>

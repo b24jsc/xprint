@@ -62,7 +62,7 @@
     .Title("Import File (.repx)")
     .Visible(false)
     .DragEnabled(true)
-    .CloseOnOutsideClick(true)
+    .HideOnOutsideClick(true)
     .ContentTemplate(new TemplateName("importTemplate"))
 )
 
@@ -74,7 +74,7 @@
     .Title("Chi tiết & Cấu hình JSON")
     .Visible(false)
     .DragEnabled(true)
-    .CloseOnOutsideClick(true)
+    .HideOnOutsideClick(true)
 )
 
 @using (Html.DevExtreme().NamedTemplate("importTemplate"))
@@ -122,6 +122,53 @@
                 }).fail(function(xhr) {
                     DevExpress.ui.notify("Lỗi: " + xhr.responseText, "error", 3000);
                 });
+            }
+        });
+    }
+
+    // Hàm đóng Popup Import
+    function closeImportPopup() {
+        var popup = $("#importPopup").dxPopup("instance");
+        if (popup) {
+            popup.hide();
+        }
+    }
+
+    // Hàm Submit gửi file lên Server
+    function submitImportForm(e) {
+        var formElement = $('#frmImportFile')[0]; // frmImportFile nằm trong _Import.cshtml
+
+        if (!formElement.checkValidity()) {
+            formElement.reportValidity();
+            return;
+        }
+
+        var formData = new FormData(formElement);
+        // csrfToken đã được anh khai báo ở tuốt trên cùng của thẻ script này rồi
+        formData.append('__RequestVerificationToken', csrfToken);
+
+        var btn = e.component;
+        btn.option("text", "Đang tải...");
+        btn.option("disabled", true);
+
+        $.ajax({
+            url: '/Reports/Import',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                closeImportPopup();
+                formElement.reset(); // Xóa trắng form để lần sau mở lên không dính file cũ
+                DevExpress.ui.notify(res, "success", 2000);
+                refreshGrid(); // Load lại lưới ngay lập tức
+            },
+            error: function (xhr) {
+                DevExpress.ui.notify(xhr.responseText, "error", 3000);
+            },
+            complete: function() {
+                btn.option("text", "Import");
+                btn.option("disabled", false);
             }
         });
     }

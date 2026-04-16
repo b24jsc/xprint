@@ -18,12 +18,12 @@
         }
     ];
 
-    // --- 2. KHỞI TẠO DRAWER (Chuẩn Demo LeftOrRight) ---
+    // --- 2. KHỞI TẠO DRAWER ---
     var drawer = $("#app-drawer").dxDrawer({
         opened: true,
-        openedStateMode: "shrink", // Thu hẹp content khi mở menu
+        openedStateMode: "shrink", 
         position: "left",
-        revealMode: "slide",       // Hiệu ứng trượt giống hệt demo
+        revealMode: "slide",      
         template: function () {
             var $treeView = $("<div>").dxTreeView({
                 dataSource: menuData,
@@ -31,7 +31,7 @@
                 focusStateEnabled: false,
                 hoverStateEnabled: true,
                 expandEvent: "click",
-                width: 250, // Fix cứng chiều rộng menu để không bị co giật
+                width: 250, 
                 onItemClick: function (e) {
                     if (e.itemData.url) {
                         window.location.href = e.itemData.url;

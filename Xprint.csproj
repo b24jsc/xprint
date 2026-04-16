@@ -8,6 +8,7 @@
 		<DockerfileContext>.</DockerfileContext>
 		<DockerfileBuildArguments>--secret id=dxnuget,source=secrets.dev.yaml</DockerfileBuildArguments>
 		<Platforms>AnyCPU;x64</Platforms>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
