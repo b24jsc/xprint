@@ -67,6 +67,22 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ReportDbContext>();
+
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Có lỗi xảy ra khi tự động cập nhật Database.");
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
     services.GetService<ReportDbContext>().InitializeDatabase();
 }
 
